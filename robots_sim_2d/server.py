@@ -35,8 +35,7 @@ def agent_portrayal(agent):
 grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)
 
 model_params = {"N": UserSettableParameter(
-                "slider", "Number of roombas", 1, 1, 10, 1), "width":10, "height":10,
-                "trashPercentage": UserSettableParameter("slider", "Percentage of trash", 0.1, 0.1, 0.9, 0.1), 
+                "slider", "Number of roombas", 1, 1, 10, 1), "width":10, "height":10, 
                 "timer": UserSettableParameter("slider", "Timer", 10, 10, 100, 5)}
 
 server = ModularServer(RandomModel, [grid], "Roomba Simulation", model_params)

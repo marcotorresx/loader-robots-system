@@ -10,12 +10,11 @@ class RandomModel(Model):
         N: Number of agents in the simulation
         height, width: The size of the grid to model
     """
-    def __init__(self, N, width, height, trashPercentage, timer):
+    def __init__(self, N, width, height, timer):
         self.num_agents = N
         self.grid = MultiGrid(width,height,torus = False) 
         self.schedule = RandomActivation(self)
         self.running = True 
-        self.trashPercentage = trashPercentage
         self.timer = timer
         self.count = 0
 
@@ -47,9 +46,6 @@ class RandomModel(Model):
                 pos = pos_gen(self.grid.width, self.grid.height)
             self.grid.place_agent(a, pos)
 
-        # Add trash to a random empty grid cell
-        # Get the number of cells that will contain trash
-        self.dirtyCells = int(((height * width) - len(border)) * trashPercentage)
         
         for i in range(20):
             a = BoxAgent(i+2000, self) 

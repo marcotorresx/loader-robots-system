@@ -21,6 +21,7 @@ class RandomAgent(Agent):
         self.steps_taken = 0
         self.box = None
         self.nearestPoint = None
+        self.points = [(1,1), (1,8), (8,1), (8,8)]
 
     def step(self):
         """ 
@@ -54,7 +55,7 @@ class RandomAgent(Agent):
         # Check for empty spaces and spaces with box
         freeSpaces = self.move_free_spaces(possible_steps)
         boxSpaces = self.move_box_spaces(possible_steps)
-        
+
         # The agents will choose move to cells with box instead empty cells
         next_moves = [p for p,f in zip(possible_steps, boxSpaces) if f == True]
         
@@ -98,17 +99,22 @@ class RandomAgent(Agent):
                     if(distance < furthestDistance):
                         next_move = next_moves[i]
                         furthestDistance = distance
-                # for i in range(len(next_moves)):
-                #     if(next_moves[i] == next_move):
-                #         next_moves.pop(i) 
 
-            # choose the next move randmly between the new possible moves
-            # next_move = self.random.choice(next_moves)
-            if (next_move == None):
+            if (next_move == None and (next_moves[0] in self.points)):
+
                 next_move = next_moves[0]
-            self.model.grid.move_agent(self, next_move) 
-            self.box.model.grid.move_agent(self.box, next_move)
-            self.steps_taken+=1
+                self.box.model.grid.move_agent(self.box, next_move)
+                self.box.isTaken = False
+                self.box.isOrdered = True
+                self.deleteBox()
+                self.box = None
+                self.nearestPoint = None
+                self.steps_taken+=1
+
+            else:
+                self.model.grid.move_agent(self, next_move or next_moves[0])
+                self.box.model.grid.move_agent(self.box, next_move or next_moves[0])
+                self.steps_taken+=1
                     
 
 
@@ -127,11 +133,11 @@ class RandomAgent(Agent):
         Function obtain the nearest point to the agent
         """
         points = [(1,1), (1,8), (8,1), (8,8)]
-        minDistance = 0
+        minDistance = 0 
         nearestPoint = None
         
         # Get distances with pythagoras
-        for i in range(4):
+        for i in range(len(points)):
             point = points[i]
             distX = point[0] - self.pos[0]
             distY = point[1] - self.pos[1]
@@ -176,9 +182,9 @@ class RandomAgent(Agent):
                         freeSpaces.append(True)
                         pass
 
-                    elif(len(contents) > 1):
+                    elif(len(contents) > 1):   
                         freeSpaces.append(False)
-                    else:
+                    else: 
                         freeSpaces.append(False)
         return freeSpaces
 
@@ -195,16 +201,27 @@ class RandomAgent(Agent):
                         pass
 
                     elif(len(contents) > 1):
+
                         freeSpaces.append(False)
                     else:
+                        counter = 0
                         for agent in contents:
                             if isinstance(agent, BoxAgent):
+                                counter+=1
                                 freeSpaces.append(True)
-                            else:
-                                freeSpaces.append(False)
+                        if counter == 0:
+                            freeSpaces.append(False)
         return freeSpaces
 
-
+    def deleteBox(self):
+        """
+        Function delete the box from the list of boxes
+        """
+        for (contents, w, h) in self.model.grid.coord_iter():
+            if(self.nearestPoint == (w, h)):
+                for agent in contents:
+                    if isinstance(agent, DestinyAgent):
+                        agent.addBox()
 
 
 class ObstacleAgent(Agent):
