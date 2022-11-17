@@ -13,12 +13,14 @@ class RandomModel(Model):
         N: Number of agents in the simulation
         height, width: The size of the grid to model
     """
-    def __init__(self, N, width, height, timer):
-        self.num_agents = 5
+    def __init__(self, N, width, height, boxes):
+        self.num_agents = N
+        self.height = height
+        self.width = width
+        self.boxes = boxes
         self.grid = MultiGrid(width, height, torus = False) 
         self.schedule = RandomActivation(self)
         self.running = True 
-        self.timer = timer
         self.count = 0
         self.destinations = []
 
@@ -31,7 +33,8 @@ class RandomModel(Model):
             self.grid.place_agent(obs, border[i])
 
         # Place the destiny agents 
-        destiny_points = [(1,1), (1,8), (8,1), (8,8)]
+        destiny_points = [(1,1), (1,self.height - 2), (self.width - 2,1), (self.width - 2, self.height - 2)]
+        print(destiny_points)
         for i in range(4):
             dest = DestinyAgent(i+3000, self) 
             self.destinations.append(dest)
@@ -39,7 +42,7 @@ class RandomModel(Model):
             self.grid.place_agent(dest, destiny_points[i])
 
         # Place the box agents
-        for i in range(20):
+        for i in range(self.boxes):
             box = BoxAgent(i+2000, self) 
 
             # Obtain one random potition of the grid to place the trash agent
@@ -66,6 +69,7 @@ class RandomModel(Model):
                 pos = pos_gen(self.grid.width, self.grid.height)
 
             self.grid.place_agent(agent, pos)
+
 
 
     def step(self):

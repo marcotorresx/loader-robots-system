@@ -24,10 +24,11 @@ class RandomAgent(Agent):
         self.steps_to_destiny = 0
         self.box = None
         self.nearest_destiny = None
-        self.points = [(1,1), (1,8), (8,1), (8,8)]
+        self.points = [(1,1), (1,self.model.height - 2), (self.model.width - 2,1), (self.model.width - 2, self.model.height - 2)]
 
 
     def step(self):
+        print(self.points)
         """ 
         Decides wich is the procedure that the robot needs to make
         """
@@ -38,7 +39,7 @@ class RandomAgent(Agent):
         # If the robot already is carrying a box
         if self.box:
             
-            if self.steps_to_destiny >= 10:
+            if self.steps_to_destiny >= (self.model.height - 5):
                 for destiny in self.model.destinations:
                     if not destiny.full and destiny != self.nearest_destiny:
                         self.nearest_destiny = destiny
@@ -93,6 +94,7 @@ class RandomAgent(Agent):
 
 
     def moveWithBox(self):
+        print("Moving with box")
         possible_steps = self.model.grid.get_neighborhood(
             self.pos,
             moore=False, 
@@ -124,6 +126,7 @@ class RandomAgent(Agent):
                         furthestDistance = distance
 
             if (next_move == None and (next_moves[0] in self.points)):
+                print("left the box in a point", next_moves[0])
                 self.steps_to_destiny = 0
                 next_move = next_moves[0]
                 self.box.model.grid.move_agent(self.box, next_move)

@@ -3,32 +3,36 @@
 # Octavio Navarro. October 2021
 
 from flask import Flask, request, jsonify
-from RandomAgents import *
+from model import RandomModel
+from agents.RandomAgent import RandomAgent
+from agents.ObstacleAgent import ObstacleAgent
+from agents.DestinyAgent import DestinyAgent
+from agents.BoxAgent import BoxAgent
 
 # Size of the board:
 number_agents = 10
 width = 28
 height = 28
+boxes = 20
 randomModel = None
 currentStep = 0
 
-app = Flask("Traffic example")
+app = Flask("Robot Example")
 
 # @app.route('/', methods=['POST', 'GET'])
 
 @app.route('/init', methods=['POST', 'GET'])
 def initModel():
-    global currentStep, randomModel, number_agents, width, height
+    global currentStep, randomModel, number_agents, width, height, boxes
 
     if request.method == 'POST':
         number_agents = int(request.form.get('NAgents'))
         width = int(request.form.get('width'))
         height = int(request.form.get('height'))
+        boxes = int(request.form.get('boxes'))
         currentStep = 0
 
-        print(request.form)
-        print(number_agents, width, height)
-        randomModel = RandomModel(number_agents, width, height)
+        randomModel = RandomModel(number_agents, width, height, boxes)
 
         return jsonify({"message":"Parameters recieved, model initiated."})
 
@@ -37,7 +41,37 @@ def getAgents():
     global randomModel
 
     if request.method == 'GET':
-        agentPositions = [{"id": str(a.unique_id), "x": x, "y":1, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
+        agentPositions = []
+        for (w, x, z) in randomModel.grid.coord_iter():
+            for agent in w:
+                if isinstance(agent, RandomAgent):
+                    agentPositions.append({"id": str(agent.unique_id), "x": x, "y":0, "z":z})
+        
+        return jsonify({'positions':agentPositions})
+
+@app.route('/getBoxes', methods=['GET'])
+def getBoxes():
+    global randomModel
+
+    if request.method == 'GET':
+        agentPositions = []
+        for (w, x, z) in randomModel.grid.coord_iter():
+            for agent in w:
+                if isinstance(agent, BoxAgent):
+                    agentPositions.append({"id": str(agent.unique_id), "x": x, "y":0, "z":z})
+
+        return jsonify({'positions':agentPositions})
+
+@app.route('/getDestiny', methods=['GET'])
+def getDestiny():
+    global randomModel
+
+    if request.method == 'GET':
+        agentPositions = []
+        for (w, x, z) in randomModel.grid.coord_iter():
+            for agent in w:
+                if isinstance(agent, DestinyAgent):
+                    agentPositions.append({"id": str(agent.unique_id), "x": x, "y":0, "z":z})
 
         return jsonify({'positions':agentPositions})
 
@@ -46,9 +80,13 @@ def getObstacles():
     global randomModel
 
     if request.method == 'GET':
-        carPositions = [{"id": str(a.unique_id), "x": x, "y":1, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, ObstacleAgent)]
+        agentPositions = []
+        for (w, x, z) in randomModel.grid.coord_iter():
+            for agent in w:
+                if isinstance(agent, ObstacleAgent):
+                    agentPositions.append({"id": str(agent.unique_id), "x": x, "y":0, "z":z})
 
-        return jsonify({'positions':carPositions})
+        return jsonify({'positions':agentPositions})
 
 @app.route('/update', methods=['GET'])
 def updateModel():

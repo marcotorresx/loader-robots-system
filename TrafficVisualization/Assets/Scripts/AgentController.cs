@@ -39,16 +39,18 @@ public class AgentController : MonoBehaviour
     string serverUrl = "http://localhost:8585";
     string getAgentsEndpoint = "/getAgents";
     string getObstaclesEndpoint = "/getObstacles";
+    string getBoxesEndpoint = "/getBoxes";
+    string getDestinyEndpoint = "/getDestiny";
     string sendConfigEndpoint = "/init";
     string updateEndpoint = "/update";
-    AgentsData agentsData, obstacleData;
+    AgentsData agentsData, obstacleData, boxData, destinyData;
     Dictionary<string, GameObject> agents;
     Dictionary<string, Vector3> prevPositions, currPositions;
 
     bool updated = false, started = false;
 
-    public GameObject agentPrefab, obstaclePrefab, floor;
-    public int NAgents, width, height;
+    public GameObject agentPrefab, obstaclePrefab, destinyPrefab, boxPrefab, floor;
+    public int NAgents, width, height, boxes;
     public float timeToUpdate = 5.0f;
     private float timer, dt;
 
@@ -56,6 +58,8 @@ public class AgentController : MonoBehaviour
     {
         agentsData = new AgentsData();
         obstacleData = new AgentsData();
+        boxData = new AgentsData();
+        destinyData = new AgentsData();
 
         prevPositions = new Dictionary<string, Vector3>();
         currPositions = new Dictionary<string, Vector3>();
@@ -121,6 +125,7 @@ public class AgentController : MonoBehaviour
         form.AddField("NAgents", NAgents.ToString());
         form.AddField("width", width.ToString());
         form.AddField("height", height.ToString());
+        form.AddField("boxes", boxes.ToString());
 
         UnityWebRequest www = UnityWebRequest.Post(serverUrl + sendConfigEndpoint, form);
         www.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -137,6 +142,8 @@ public class AgentController : MonoBehaviour
             Debug.Log("Getting Agents positions");
             StartCoroutine(GetAgentsData());
             StartCoroutine(GetObstacleData());
+            StartCoroutine(GetBoxData());
+            StartCoroutine(GetDestinyData());
         }
     }
 
@@ -150,7 +157,7 @@ public class AgentController : MonoBehaviour
         else 
         {
             agentsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
-
+            Debug.Log(www.downloadHandler.text);
             foreach(AgentData agent in agentsData.positions)
             {
                 Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
@@ -184,12 +191,53 @@ public class AgentController : MonoBehaviour
         else 
         {
             obstacleData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+                Debug.Log(www.downloadHandler.text);
 
-            Debug.Log(obstacleData.positions);
 
             foreach(AgentData obstacle in obstacleData.positions)
             {
+                Debug.Log(obstacle);
+
                 Instantiate(obstaclePrefab, new Vector3(obstacle.x, obstacle.y, obstacle.z), Quaternion.identity);
+            }
+        }
+    }
+
+    IEnumerator GetBoxData() 
+    {
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getBoxesEndpoint);
+        yield return www.SendWebRequest();
+ 
+        if (www.result != UnityWebRequest.Result.Success)
+            Debug.Log(www.error);
+        else 
+        {
+            boxData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+
+            Debug.Log(www.downloadHandler.text);
+            foreach(AgentData box in boxData.positions)
+            {
+                Instantiate(boxPrefab, new Vector3(box.x, box.y, box.z), Quaternion.identity);
+            }
+        }
+    }
+
+    IEnumerator GetDestinyData() 
+    {
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getDestinyEndpoint);
+        yield return www.SendWebRequest();
+ 
+        if (www.result != UnityWebRequest.Result.Success)
+            Debug.Log(www.error);
+        else 
+        {
+            destinyData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+
+            Debug.Log(www.downloadHandler.text);
+
+            foreach(AgentData destiny in destinyData.positions)
+            {
+                Instantiate(destinyPrefab, new Vector3(destiny.x, destiny.y, destiny.z), Quaternion.identity);
             }
         }
     }
