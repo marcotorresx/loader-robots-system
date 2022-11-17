@@ -8,8 +8,10 @@ class RandomAgent(Agent):
     Agent that moves randomly.
     Attributes:
         unique_id: Agent's ID 
-        direction: Randomly chosen direction chosen from one of eight directions
+        direction: Randomly chosen direction chosen from one of four directions
     """
+
+
     def __init__(self, unique_id, model):
         """
         Creates a new random agent.
@@ -21,48 +23,60 @@ class RandomAgent(Agent):
         self.direction = 4
         self.steps_taken = 0
         self.box = None
-        self.nearestPoint = None
+        self.nearest_destiny = None
         self.points = [(1,1), (1,8), (8,1), (8,8)]
+
 
     def step(self):
         """ 
-        Determines the new direction it will take, and then moves
+        Decides wich is the procedure that the robot needs to make
         """
-        # self.direction = self.random.randint(0,8)
-        # print(f"Agente: {self.unique_id} movimiento {self.direction}")
 
-        isBoxInMyCell = self.get_box_in_my_cell()
+        # Check if there is a box in my current cell
+        is_box_in_my_cell = self.get_box_in_my_cell()
 
+        # If the robot already is carrying a box
         if self.box:
-            self.moveWithBox()
+            # Move to destiny with box
+            self.moveWithBox() 
 
-        elif isBoxInMyCell:
-            self.box = isBoxInMyCell
-            self.nearestPoint = self.getNearestPoint()
-            
+        # If not, if it had found a new box
+        elif is_box_in_my_cell:
+            self.box = is_box_in_my_cell
+            self.nearest_destiny = self.get_nearest_destiny()
+        
+        # If not, continue searching boxes
         else: 
+            # Move to find a box
             self.move()
 
-    
 
     def move(self):
-     
+        """ 
+        Move agent to search for boxes
+        """
         possible_steps = self.model.grid.get_neighborhood(
             self.pos,
             moore=False, 
             include_center=True
         ) 
    
-        # Check for empty spaces and spaces with box
-        freeSpaces = self.move_free_spaces(possible_steps)
-        boxSpaces = self.move_box_spaces(possible_steps)
+        # Check for empty cells and cells with a box
+        empty_cells = self.get_empty_cells(possible_steps)
+        box_cells = self.get_box_cells(possible_steps)
+
+        print(possible_steps)
+        print("E")
+        print(empty_cells)
+        print("B")
+        print(box_cells)
 
         # The agents will choose move to cells with box instead empty cells
-        next_moves = [p for p,f in zip(possible_steps, boxSpaces) if f == True]
+        next_moves = [p for p,f in zip(possible_steps, box_cells) if f == True]
         
         # If there is no box near, the next moves will take empty spaces
         if(len(next_moves) == 0):
-            next_moves = [p for p,f in zip(possible_steps, freeSpaces) if f == True]
+            next_moves = [p for p,f in zip(possible_steps, empty_cells) if f == True]
 
         # Check if the agent can move arround itself, if can not move
         # the agent will wait until exist free spaces
@@ -80,13 +94,13 @@ class RandomAgent(Agent):
             include_center=True
         )
         next_moves = []
-        if(self.nearestPoint in possible_steps):
-            next_moves.append(self.nearestPoint)
+        if(self.nearest_destiny in possible_steps):
+            next_moves.append(self.nearest_destiny)
         else:
             # Check for empty spaces and spaces with box
-            freeSpaces = self.move_free_spaces(possible_steps)
+            empty_cells = self.get_empty_cells(possible_steps)
             # The agents will choose move to cells with box instead empty cells
-            next_moves = [p for p,f in zip(possible_steps, freeSpaces) if f == True]
+            next_moves = [p for p,f in zip(possible_steps, empty_cells) if f == True]
 
         # Check if the agent can move arround itself, if can not move
         # the agent will wait until exist free spaces
@@ -96,7 +110,7 @@ class RandomAgent(Agent):
             # eliminate the cell that drives you the furthes to the nearest point
             if len(next_moves) > 1:
                 for i in range(len(next_moves)):
-                    distance = self.getDistance(next_moves[i], self.nearestPoint)
+                    distance = self.getDistance(next_moves[i], self.nearest_destiny)
                     if(distance < furthestDistance):
                         next_move = next_moves[i]
                         furthestDistance = distance
@@ -109,7 +123,7 @@ class RandomAgent(Agent):
                 self.box.isOrdered = True
                 self.deleteBox()
                 self.box = None
-                self.nearestPoint = None
+                self.nearest_destiny = None
                 self.steps_taken+=1
 
             else:
@@ -117,7 +131,6 @@ class RandomAgent(Agent):
                 self.box.model.grid.move_agent(self.box, next_move or next_moves[0])
                 self.steps_taken+=1
                     
-
 
     def getDistance(self, point1, point2):
         """
@@ -129,49 +142,53 @@ class RandomAgent(Agent):
         return dist
 
 
-    def getNearestPoint(self):
+    def get_nearest_destiny(self):
         """
-        Function obtain the nearest point to the agent
+        Function that obtains the nearest destiny point
         """
-        points = [(1,1), (1,8), (8,1), (8,8)]
-        minDistance = 0 
-        nearestPoint = None
+        points = self.model.destiny_points
+        min_distance = 0
+        nearest_destiny = None
         
         # Get distances with pythagoras
         for i in range(len(points)):
             point = points[i]
-            distX = point[0] - self.pos[0]
-            distY = point[1] - self.pos[1]
-            dist = sqrt(distX**2 + distY**2)
-            if minDistance > dist or minDistance == 0:
-                minDistance = dist
-                nearestPoint = point
-                
-        return nearestPoint
 
+            # Get distance from agent to point in x and y axes
+            dist_x = point[0] - self.pos[0]
+            dist_y = point[1] - self.pos[1]
+
+            # Obtain distance with pythagoras
+            dist = sqrt(dist_x**2 + dist_y**2)
+
+            # Check if its nearest
+            if min_distance > dist or min_distance == 0:
+                min_distance = dist
+                nearest_destiny = point
+                
+        return nearest_destiny
 
 
     def get_box_in_my_cell(self):
-        '''Regresar si hay unq caja en mi celda'''
+        '''If there is a box in my cell, returns the box, if not return None'''
 
-        # Obtener todas las celdas de mi alrededor y de mi celda
+        # Get neighbor cells to access my cell
         neighbors = self.model.grid.get_neighbors(
             self.pos,
             moore=False, 
             include_center=True
         ) 
         
-        # Buscar en mi celda actual 
+        # Search in my current cell
         for n in neighbors:
-            # Si el agente vecino está en mi celda y es basura
+            # If the there is a box agent in my cell
             if n.pos == self.pos and isinstance(n, BoxAgent):
-                return n
+                return n # Return box
 
         return None
         
 
-
-    def move_free_spaces(self, possible_steps):
+    def get_empty_cells(self, possible_steps):
         """
         Function obtain the free spaces of the possible steps
         """
@@ -189,9 +206,10 @@ class RandomAgent(Agent):
                         freeSpaces.append(False)
         return freeSpaces
 
-    def move_box_spaces(self, possible_steps):
+
+    def get_box_cells(self, possible_steps):
         """
-        Function obtain the spaces which contain box
+        Function that obtains the cells which contain a box
         """
         freeSpaces = []
         for i in range(len(possible_steps)):
@@ -214,12 +232,13 @@ class RandomAgent(Agent):
                             freeSpaces.append(False)
         return freeSpaces
 
+
     def deleteBox(self):
         """
         Function delete the box from the list of boxes
         """
         for (contents, w, h) in self.model.grid.coord_iter():
-            if(self.nearestPoint == (w, h)):
+            if(self.nearest_destiny == (w, h)):
                 for agent in contents:
                     if isinstance(agent, DestinyAgent):
                         agent.addBox()

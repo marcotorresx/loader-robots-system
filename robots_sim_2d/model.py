@@ -14,12 +14,13 @@ class RandomModel(Model):
         height, width: The size of the grid to model
     """
     def __init__(self, N, width, height, timer):
-        self.num_agents = N
+        self.num_agents = 1
         self.grid = MultiGrid(width, height, torus = False) 
         self.schedule = RandomActivation(self)
         self.running = True 
         self.timer = timer
         self.count = 0
+        self.destiny_points = [(1,1), (1,8), (8,1), (8,8)]
 
         # Creates the border of the grid
         border = [(x,y) for y in range(height) for x in range(width) if y in [0, height-1] or x in [0, width - 1]]
@@ -50,7 +51,7 @@ class RandomModel(Model):
             self.grid.place_agent(box, pos)
 
         # Place
-        for i in range(5):
+        for i in range(self.num_agents):
             agent = RandomAgent(i+1000, self) 
             self.schedule.add(agent)
 
