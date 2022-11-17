@@ -115,6 +115,8 @@ public class AgentController : MonoBehaviour
         else 
         {
             StartCoroutine(GetAgentsData());
+            StartCoroutine(GetBoxData());
+            StartCoroutine(GetDestinyData());
         }
     }
 
