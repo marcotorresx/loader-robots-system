@@ -20,8 +20,8 @@ class RandomAgent(Agent):
             model: Model reference for the agent
         """
         super().__init__(unique_id, model)
-        self.direction = 4
         self.steps_taken = 0
+        self.steps_to_destiny = 0
         self.box = None
         self.nearest_destiny = None
         self.points = [(1,1), (1,8), (8,1), (8,8)]
@@ -37,8 +37,19 @@ class RandomAgent(Agent):
 
         # If the robot already is carrying a box
         if self.box:
+            
+            if self.steps_to_destiny >= 10:
+                for destiny in self.model.destinations:
+                    if not destiny.full and destiny != self.nearest_destiny:
+                        self.nearest_destiny = destiny
+                        self.steps_to_destiny = 0 
+                        return
+                        2
+            # Check amount of boxes of destiny
+            self.check_destiny_availability()
             # Move to destiny with box
             self.moveWithBox() 
+        
 
         # If not, if it had found a new box
         elif is_box_in_my_cell:
@@ -88,8 +99,8 @@ class RandomAgent(Agent):
             include_center=True
         )
         next_moves = []
-        if(self.nearest_destiny in possible_steps):
-            next_moves.append(self.nearest_destiny)
+        if self.nearest_destiny.pos in possible_steps:
+            next_moves.append(self.nearest_destiny.pos)
         else:
             # Check for empty spaces and spaces with box
             empty_cells = self.get_empty_cells(possible_steps)
@@ -99,23 +110,24 @@ class RandomAgent(Agent):
         # Check if the agent can move arround itself, if can not move
         # the agent will wait until exist free spaces
         if len(next_moves) > 0:
+            
+            self.steps_to_destiny += 1
+
             furthestDistance = 1000000000
             next_move = None
             # eliminate the cell that drives you the furthes to the nearest point
             if len(next_moves) > 1:
                 for i in range(len(next_moves)):
-                    distance = self.getDistance(next_moves[i], self.nearest_destiny)
+                    distance = self.getDistance(next_moves[i], self.nearest_destiny.pos)
                     if(distance < furthestDistance):
                         next_move = next_moves[i]
                         furthestDistance = distance
 
             if (next_move == None and (next_moves[0] in self.points)):
-
+                self.steps_to_destiny = 0
                 next_move = next_moves[0]
                 self.box.model.grid.move_agent(self.box, next_move)
-                self.box.isTaken = False
-                self.box.isOrdered = True
-                self.deleteBox()
+                self.nearest_destiny.addBox()
                 self.box = None
                 self.nearest_destiny = None
                 self.steps_taken+=1
@@ -140,13 +152,13 @@ class RandomAgent(Agent):
         """
         Function that obtains the nearest destiny point
         """
-        points = self.model.destiny_points
+        destinations = self.model.destinations
         min_distance = 0
         nearest_destiny = None
         
         # Get distances with pythagoras
-        for i in range(len(points)):
-            point = points[i]
+        for i in range(len(destinations)):
+            point = destinations[i].pos
 
             # Get distance from agent to point in x and y axes
             dist_x = point[0] - self.pos[0]
@@ -158,7 +170,7 @@ class RandomAgent(Agent):
             # Check if its nearest
             if min_distance > dist or min_distance == 0:
                 min_distance = dist
-                nearest_destiny = point
+                nearest_destiny = destinations[i]
                 
         return nearest_destiny
 
@@ -192,8 +204,6 @@ class RandomAgent(Agent):
                 if (w, h) == possible_steps[i]:
                     if(len(contents) == 0):
                         freeSpaces.append(True)
-                        pass
-
                     elif(len(contents) > 1):   
                         freeSpaces.append(False)
                     else: 
@@ -225,14 +235,14 @@ class RandomAgent(Agent):
                         if counter == 0:
                             freeSpaces.append(False)
         return freeSpaces
+        
 
+    def check_destiny_availability(self):
+        """Check if the current destiny is still available (not full)."""
 
-    def deleteBox(self):
-        """
-        Function delete the box from the list of boxes
-        """
-        for (contents, w, h) in self.model.grid.coord_iter():
-            if(self.nearest_destiny == (w, h)):
-                for agent in contents:
-                    if isinstance(agent, DestinyAgent):
-                        agent.addBox()
+        if self.nearest_destiny.full:
+            # Change destiny
+            for destiny in self.model.destinations:
+                if not destiny.full:
+                    self.nearest_destiny = destiny
+                    return

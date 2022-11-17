@@ -6,10 +6,15 @@ class DestinyAgent(Agent):
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.amountOfBoxes = 0
+        self.amount_of_boxes = 0
+        self.full = False
 
     def step(self):
-        pass
+
+        if self.amount_of_boxes >= 5:
+            self.full = True
+            self.model.destinations = [item for item in self.model.destinations if not item.full]
+
 
     def addBox(self):
-        self.amountOfBoxes += 1
+        self.amount_of_boxes += 1

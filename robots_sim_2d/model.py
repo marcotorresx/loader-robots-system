@@ -20,7 +20,7 @@ class RandomModel(Model):
         self.running = True 
         self.timer = timer
         self.count = 0
-        self.destiny_points = [(1,1), (1,8), (8,1), (8,8)]
+        self.destinations = []
 
         # Creates the border of the grid
         border = [(x,y) for y in range(height) for x in range(width) if y in [0, height-1] or x in [0, width - 1]]
@@ -30,11 +30,13 @@ class RandomModel(Model):
             obs = ObstacleAgent(i+4000, self)
             self.grid.place_agent(obs, border[i])
 
-        # Place the destiny agents
-        destiny_positions = [(1,1), (8,1), (1,8), (8,8)]
+        # Place the destiny agents 
+        destiny_points = [(1,1), (1,8), (8,1), (8,8)]
         for i in range(4):
             dest = DestinyAgent(i+3000, self) 
-            self.grid.place_agent(dest, destiny_positions[i])
+            self.destinations.append(dest)
+            self.schedule.add(dest)
+            self.grid.place_agent(dest, destiny_points[i])
 
         # Place the box agents
         for i in range(20):
