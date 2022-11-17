@@ -1,5 +1,6 @@
 from mesa import Agent
-# import math
+from .BoxAgent import BoxAgent
+from .DestinyAgent import DestinyAgent
 from math import sqrt
 
 class RandomAgent(Agent):
@@ -222,53 +223,3 @@ class RandomAgent(Agent):
                 for agent in contents:
                     if isinstance(agent, DestinyAgent):
                         agent.addBox()
-
-
-class ObstacleAgent(Agent):
-    """
-    Obstacle agent. Just to add obstacles to the grid.
-    """
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
-
-    def step(self):
-        pass  
-
-
-
-class DestinyAgent(Agent):
-    """
-    Destiny agent. Just to add destiny to the grid.
-    """
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
-        self.amountOfBoxes = 0
-
-    def step(self):
-        pass
-
-    def addBox(self):
-        self.amountOfBoxes += 1
-
-
-
-class BoxAgent(Agent):
-    """
-    Box agent. Just to add box to the grid.
-    """
-    PENDING_MOVEMENT = 0 
-    MOVING = 1
-    IN_PLACE = 2
-    
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
-        self.isTaken = False
-        self.isOrdered = False
-        self.status = self.PENDING_MOVEMENT
-
-    def step(self):
-        pass
-
-    def move(self, cell):
-        if self.status == self.MOVING:
-            self.model.grid.move_agent(self, cell)

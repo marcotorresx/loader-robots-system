@@ -1,7 +1,10 @@
 from mesa import Model, agent
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
-from agent import RandomAgent, ObstacleAgent, DestinyAgent, BoxAgent
+from agents.RandomAgent import RandomAgent
+from agents.ObstacleAgent import ObstacleAgent
+from agents.DestinyAgent import DestinyAgent
+from agents.BoxAgent import BoxAgent
 
 class RandomModel(Model):
     """ 
