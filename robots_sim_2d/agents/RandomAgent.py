@@ -65,12 +65,6 @@ class RandomAgent(Agent):
         empty_cells = self.get_empty_cells(possible_steps)
         box_cells = self.get_box_cells(possible_steps)
 
-        print(possible_steps)
-        print("E")
-        print(empty_cells)
-        print("B")
-        print(box_cells)
-
         # The agents will choose move to cells with box instead empty cells
         next_moves = [p for p,f in zip(possible_steps, box_cells) if f == True]
         

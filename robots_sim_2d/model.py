@@ -14,7 +14,7 @@ class RandomModel(Model):
         height, width: The size of the grid to model
     """
     def __init__(self, N, width, height, timer):
-        self.num_agents = 1
+        self.num_agents = 5
         self.grid = MultiGrid(width, height, torus = False) 
         self.schedule = RandomActivation(self)
         self.running = True 
