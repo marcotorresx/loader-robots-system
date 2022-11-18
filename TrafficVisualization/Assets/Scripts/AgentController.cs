@@ -47,7 +47,7 @@ public class AgentController : MonoBehaviour
     Dictionary<string, GameObject> agents;
     Dictionary<string, Vector3> prevPositions, currPositions;
 
-    bool updated = false, started = false;
+    bool updated = false, started = false, started2 = false;
 
     public GameObject agentPrefab, obstaclePrefab, destinyPrefab, boxPrefab, floor;
     public int NAgents, width, height, boxes;
@@ -149,6 +149,28 @@ public class AgentController : MonoBehaviour
         }
     }
 
+    IEnumerator GetObstacleData() 
+    {
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getObstaclesEndpoint);
+        yield return www.SendWebRequest();
+ 
+        if (www.result != UnityWebRequest.Result.Success)
+            Debug.Log(www.error);
+        else 
+        {
+            obstacleData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+                Debug.Log(www.downloadHandler.text);
+
+
+            foreach(AgentData obstacle in obstacleData.positions)
+            {
+                Debug.Log(obstacle);
+
+                Instantiate(obstaclePrefab, new Vector3(obstacle.x, obstacle.y, obstacle.z), Quaternion.identity);
+            }
+        }
+    }
+
     IEnumerator GetAgentsData() 
     {
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint);
@@ -183,27 +205,6 @@ public class AgentController : MonoBehaviour
         }
     }
 
-    IEnumerator GetObstacleData() 
-    {
-        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getObstaclesEndpoint);
-        yield return www.SendWebRequest();
- 
-        if (www.result != UnityWebRequest.Result.Success)
-            Debug.Log(www.error);
-        else 
-        {
-            obstacleData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
-                Debug.Log(www.downloadHandler.text);
-
-
-            foreach(AgentData obstacle in obstacleData.positions)
-            {
-                Debug.Log(obstacle);
-
-                Instantiate(obstaclePrefab, new Vector3(obstacle.x, obstacle.y, obstacle.z), Quaternion.identity);
-            }
-        }
-    }
 
     IEnumerator GetBoxData() 
     {
@@ -217,10 +218,28 @@ public class AgentController : MonoBehaviour
             boxData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
 
             Debug.Log(www.downloadHandler.text);
+
             foreach(AgentData box in boxData.positions)
             {
-                Instantiate(boxPrefab, new Vector3(box.x, box.y, box.z), Quaternion.identity);
+
+                Vector3 newBoxPosition = new Vector3(box.x, box.y, box.z);
+
+                    if(!started2)
+                    {
+                        prevPositions[box.id] = newBoxPosition;
+                        agents[box.id] = Instantiate(boxPrefab, newBoxPosition, Quaternion.identity);
+                    }
+                    else
+                    {
+                        Vector3 currentPosition = new Vector3();
+                        if(currPositions.TryGetValue(box.id, out currentPosition))
+                            prevPositions[box.id] = currentPosition;
+                        currPositions[box.id] = newBoxPosition;
+                    }
             }
+
+            updated = true;
+            if(!started2) started2 = true;
         }
     }
 
