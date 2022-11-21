@@ -9,12 +9,14 @@ class DestinyAgent(Agent):
         self.amount_of_boxes = 0
         self.full = False
 
+
     def step(self):
 
         if self.amount_of_boxes >= 5:
-            self.full = True
+            # Remove self from model.destinations to prevent redirecting agents to a full destiny
             self.model.destinations = [item for item in self.model.destinations if not item.full]
+            self.full = True
 
 
-    def addBox(self):
+    def add_box(self):
         self.amount_of_boxes += 1
