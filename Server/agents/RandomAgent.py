@@ -32,14 +32,24 @@ class RandomAgent(Agent):
 
         # If the robot already is carrying a box
         if self.box:
-            
+
             # If the nearest destiny its blocked the robot could be trapped in a loop, so we put a limit
             # of steps in which a robot can get to the destiny (the limit is the width of the grid). If
             # the robot reaches the limit, it will change of destiny because its probably traped
 
-            # Check if the limit of steps to a destiny has been reached or the destiny is already full
-            if self.steps_to_destiny >= self.limit_steps_to_destiny or self.nearest_destiny.full:
-                self.change_destiny()
+            # Cheeck if the limit of steps to a destiny has been reached
+            if self.steps_to_destiny >= self.limit_steps_to_destiny:
+                self.change_destiny() # Change destiny
+
+                # Increase the limit of steps at a maximum of 2 width
+                if self.limit_steps_to_destiny < self.model.width * 2:
+                    self.limit_steps_to_destiny += self.model.width // 2
+                return
+
+            # Check if the current destiny is full
+            if self.nearest_destiny.full:
+                self.change_destiny() # Change destiny
+                return
 
             # Move to destiny with box
             self.move_with_box()
@@ -135,7 +145,7 @@ class RandomAgent(Agent):
 
             # If agent is next to destiny
             if next_move == None and (next_moves[0] in self.model.destiny_points):
-                self.leave_box(next_moves[0]) # Leave box in destiny             
+                self.leave_box(next_moves[0]) # Leave box in destiny
 
             else:
                 self.model.grid.move_agent(self, next_move or next_moves[0]) # Move agent
@@ -245,12 +255,22 @@ class RandomAgent(Agent):
     def change_destiny(self):
         """Function that changes the nearest destiny of the agent"""
 
+        # Init being same destiny
+        new_destiny = self.nearest_destiny 
+
+        # Get the different available destinations from current destiny
+        different_destinations = []
         for destiny in self.model.destinations:
-            # Find a different destiny
+            # If its not my current destiy
             if destiny != self.nearest_destiny:
-                self.nearest_destiny = destiny # Set new destiny
-                self.steps_to_destiny = 0 # Reset steps to destiny
-                return
+                different_destinations.append(destiny)
+
+        # Prefer to change to a different destination
+        if len(different_destinations) > 0:
+            new_destiny = self.random.choice(different_destinations)
+
+        self.nearest_destiny = new_destiny # Set new destiny
+        self.steps_to_destiny = 0 # Reset steps to destiny
 
         # Note: When a destiny agent is full, it is removed from the model.destinations array,  
         # so in the selection of a new destiny, we are making sure the new one its not already full
@@ -267,3 +287,4 @@ class RandomAgent(Agent):
         self.nearest_destiny = None
         self.steps_taken += 1
         self.model.collected_boxes += 1
+        self.limit_steps_to_destiny = self.model.width # Reset step limit
