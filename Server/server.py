@@ -59,7 +59,7 @@ def getBoxes():
                 if isinstance(agent, BoxAgent):
                     # If the box is taken, y coord will be 0.3 (above the robot)
                     if agent.is_taken:
-                        agentPositions.append({"id": str(agent.unique_id), "x": x, "y": 0.3, "z":z})
+                        agentPositions.append({"id": str(agent.unique_id), "x": x, "y": 0.21, "z":z})
                     else:
                         agentPositions.append({"id": str(agent.unique_id), "x": x, "y": agent.order, "z":z})
 
