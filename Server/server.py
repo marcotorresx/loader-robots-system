@@ -16,25 +16,24 @@ height = 28
 boxes = 20
 randomModel = None
 currentStep = 0
-
-app = Flask("Robot Example")
-
-# @app.route('/', methods=['POST', 'GET'])
+app = Flask("Loader Robots Simulation")
 
 @app.route('/init', methods=['POST', 'GET'])
 def initModel():
     global currentStep, randomModel, number_agents, width, height, boxes
 
     if request.method == 'POST':
+        # Get data from unity
         number_agents = int(request.form.get('NAgents'))
         width = int(request.form.get('width'))
         height = int(request.form.get('height'))
         boxes = int(request.form.get('boxes'))
         currentStep = 0
 
+        # Create model
         randomModel = RandomModel(number_agents, width, height, boxes)
 
-        return jsonify({"message":"Parameters recieved, model initiated."})
+        return jsonify({"message": "Parameters recieved, model initiated."})
 
 @app.route('/getAgents', methods=['GET'])
 def getAgents():
@@ -58,12 +57,13 @@ def getBoxes():
         for (w, x, z) in randomModel.grid.coord_iter():
             for agent in w:
                 if isinstance(agent, BoxAgent):
-                    if agent.isTaken:
-                        agentPositions.append({"id": str(agent.unique_id), "x": x, "y": 0.3, "z":z})
+                    # If the box is taken, y coord will be 0.3 (above the robot)
+                    if agent.is_taken:
+                        agentPositions.append({"id": str(agent.unique_id), "x": x, "y": 0.21, "z":z})
                     else:
                         agentPositions.append({"id": str(agent.unique_id), "x": x, "y": agent.order, "z":z})
 
-        return jsonify({'positions':agentPositions})
+        return jsonify({'positions': agentPositions})
 
 @app.route('/getDestiny', methods=['GET'])
 def getDestiny():
@@ -76,7 +76,7 @@ def getDestiny():
                 if isinstance(agent, DestinyAgent):
                     agentPositions.append({"id": str(agent.unique_id), "x": x, "y":0, "z":z})
 
-        return jsonify({'positions':agentPositions})
+        return jsonify({'positions': agentPositions})
 
 @app.route('/getObstacles', methods=['GET'])
 def getObstacles():
@@ -89,7 +89,7 @@ def getObstacles():
                 if isinstance(agent, ObstacleAgent):
                     agentPositions.append({"id": str(agent.unique_id), "x": x, "y":0, "z":z})
 
-        return jsonify({'positions':agentPositions})
+        return jsonify({'positions': agentPositions})
 
 @app.route('/update', methods=['GET'])
 def updateModel():
@@ -97,7 +97,7 @@ def updateModel():
     if request.method == 'GET':
         randomModel.step()
         currentStep += 1
-        return jsonify({'message':f'Model updated to step {currentStep}.', 'currentStep':currentStep})
+        return jsonify({'message': f'Model updated to step {currentStep}.', 'currentStep':currentStep})
 
 if __name__=='__main__':
     app.run(host="localhost", port=8585, debug=True)

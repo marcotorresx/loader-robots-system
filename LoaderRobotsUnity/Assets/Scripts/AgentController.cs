@@ -1,6 +1,9 @@
 ﻿// TC2008B. Sistemas Multiagentes y Gráficas Computacionales
 // C# client to interact with Python. Based on the code provided by Sergio Ruiz.
-// Octavio Navarro. October 2021
+// Diego Araque
+// Marco Torres
+// Fer Valdeón 
+// November 2022
 
 using System;
 using System.Collections;
@@ -9,6 +12,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
 
+// Object to store agent position
 [Serializable]
 public class AgentData
 {
@@ -24,8 +28,8 @@ public class AgentData
     }
 }
 
+// Object to store agents data
 [Serializable]
-
 public class AgentsData
 {
     public List<AgentData> positions;
@@ -35,7 +39,7 @@ public class AgentsData
 
 public class AgentController : MonoBehaviour
 {
-    // private string url = "https://agents.us-south.cf.appdomain.cloud/";
+    // Urls
     string serverUrl = "http://localhost:8585";
     string getAgentsEndpoint = "/getAgents";
     string getObstaclesEndpoint = "/getObstacles";
@@ -43,19 +47,22 @@ public class AgentController : MonoBehaviour
     string getDestinyEndpoint = "/getDestiny";
     string sendConfigEndpoint = "/init";
     string updateEndpoint = "/update";
+
+    // Agents darta
     AgentsData agentsData, obstacleData, boxData, destinyData;
     Dictionary<string, GameObject> agents;
     Dictionary<string, Vector3> prevPositions, currPositions;
 
-    bool updated = false, started = false, started2 = false;
-
-    public GameObject agentPrefab, obstaclePrefab, destinyPrefab, boxPrefab, floor;
+    // Model data
     public int NAgents, width, height, boxes;
     public float timeToUpdate = 5.0f;
     private float timer, dt;
+    bool updated = false, started = false, started2 = false;
+    public GameObject agentPrefab, obstaclePrefab, destinyPrefab, boxPrefab, floor;
 
     void Start()
     {
+        // Init objects
         agentsData = new AgentsData();
         obstacleData = new AgentsData();
         boxData = new AgentsData();
@@ -66,13 +73,14 @@ public class AgentController : MonoBehaviour
 
         agents = new Dictionary<string, GameObject>();
 
-        floor.transform.localScale = new Vector3((float)width/10, 1, (float)height/10);
-        floor.transform.localPosition = new Vector3((float)width/2-0.5f, 0, (float)height/2-0.5f);
+        floor.transform.localScale = new Vector3((float) width/10, 1, (float) height/10);
+        floor.transform.localPosition = new Vector3((float) width/2-0.5f, 0, (float) height/2-0.5f);
         
         timer = timeToUpdate;
 
         StartCoroutine(SendConfiguration());
     }
+
 
     private void Update() 
     {
@@ -88,7 +96,7 @@ public class AgentController : MonoBehaviour
             timer -= Time.deltaTime;
             dt = 1.0f - (timer / timeToUpdate);
 
-            foreach(var agent in currPositions)
+            foreach (var agent in currPositions)
             {
                 Vector3 currentPosition = agent.Value;
                 Vector3 previousPosition = prevPositions[agent.Key];
@@ -97,14 +105,12 @@ public class AgentController : MonoBehaviour
                 Vector3 direction = currentPosition - interpolated;
 
                 agents[agent.Key].transform.localPosition = interpolated;
-                if(direction != Vector3.zero) agents[agent.Key].transform.rotation = Quaternion.LookRotation(direction);
+                if (direction != Vector3.zero) agents[agent.Key].transform.rotation = Quaternion.LookRotation(direction);
             }
-
-            // float t = (timer / timeToUpdate);
-            // dt = t * t * ( 3f - 2f*t);
         }
     }
  
+
     IEnumerator UpdateSimulation()
     {
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + updateEndpoint);
@@ -119,6 +125,7 @@ public class AgentController : MonoBehaviour
             StartCoroutine(GetDestinyData());
         }
     }
+
 
     IEnumerator SendConfiguration()
     {
@@ -140,36 +147,15 @@ public class AgentController : MonoBehaviour
         }
         else
         {
-            Debug.Log("Configuration upload complete!");
-            Debug.Log("Getting Agents positions");
+            Debug.Log("Configuration completed!");
+            Debug.Log("Getting agents positions...");
             StartCoroutine(GetAgentsData());
-            StartCoroutine(GetObstacleData());
             StartCoroutine(GetBoxData());
+            StartCoroutine(GetObstacleData());
             StartCoroutine(GetDestinyData());
         }
     }
 
-    IEnumerator GetObstacleData() 
-    {
-        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getObstaclesEndpoint);
-        yield return www.SendWebRequest();
- 
-        if (www.result != UnityWebRequest.Result.Success)
-            Debug.Log(www.error);
-        else 
-        {
-            obstacleData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
-                Debug.Log(www.downloadHandler.text);
-
-
-            foreach(AgentData obstacle in obstacleData.positions)
-            {
-                Debug.Log(obstacle);
-
-                Instantiate(obstaclePrefab, new Vector3(obstacle.x, obstacle.y, obstacle.z), Quaternion.identity);
-            }
-        }
-    }
 
     IEnumerator GetAgentsData() 
     {
@@ -185,7 +171,6 @@ public class AgentController : MonoBehaviour
             foreach(AgentData agent in agentsData.positions)
             {
                 Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
-
                     if(!started)
                     {
                         prevPositions[agent.id] = newAgentPosition;
@@ -201,7 +186,7 @@ public class AgentController : MonoBehaviour
             }
 
             updated = true;
-            if(!started) started = true;
+            if (!started) started = true;
         }
     }
 
@@ -239,9 +224,10 @@ public class AgentController : MonoBehaviour
             }
 
             updated = true;
-            if(!started2) started2 = true;
+            if (!started2) started2 = true;
         }
     }
+
 
     IEnumerator GetDestinyData() 
     {
@@ -256,9 +242,32 @@ public class AgentController : MonoBehaviour
 
             Debug.Log(www.downloadHandler.text);
 
-            foreach(AgentData destiny in destinyData.positions)
+            foreach (AgentData destiny in destinyData.positions)
             {
                 Instantiate(destinyPrefab, new Vector3(destiny.x, destiny.y, destiny.z), Quaternion.identity);
+            }
+        }
+    }
+
+
+    IEnumerator GetObstacleData() 
+    {
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getObstaclesEndpoint);
+        yield return www.SendWebRequest();
+ 
+        if (www.result != UnityWebRequest.Result.Success)
+            Debug.Log(www.error);
+        else 
+        {
+            obstacleData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+                Debug.Log(www.downloadHandler.text);
+
+
+            foreach(AgentData obstacle in obstacleData.positions)
+            {
+                Debug.Log(obstacle);
+
+                Instantiate(obstaclePrefab, new Vector3(obstacle.x, obstacle.y, obstacle.z), Quaternion.identity);
             }
         }
     }
