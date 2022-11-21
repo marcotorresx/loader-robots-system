@@ -55,6 +55,7 @@ class RandomAgent(Agent):
         # If not, if it had found a new box
         elif is_box_in_my_cell:
             self.box = is_box_in_my_cell
+            self.box.isTaken = True
             self.nearest_destiny = self.get_nearest_destiny()
         
         # If not, continue searching boxes
@@ -126,7 +127,11 @@ class RandomAgent(Agent):
                         furthestDistance = distance
 
             if (next_move == None and (next_moves[0] in self.points)):
-                print("left the box in a point", next_moves[0])
+                self.box.isTaken = False
+                if self.nearest_destiny.amount_of_boxes == 0:
+                    self.box.order = 0
+                else:
+                    self.box.order = self.nearest_destiny.amount_of_boxes * 0.35
                 self.steps_to_destiny = 0
                 next_move = next_moves[0]
                 self.box.model.grid.move_agent(self.box, next_move)
