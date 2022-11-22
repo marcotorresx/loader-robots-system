@@ -1,5 +1,5 @@
 from model import RandomModel, ObstacleAgent, BoxAgent, DestinyAgent
-from mesa.visualization.modules import CanvasGrid
+from mesa.visualization.modules import CanvasGrid, BarChartModule
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
 
@@ -33,10 +33,12 @@ grid = CanvasGrid(agent_portrayal, 15, 15, 500, 500)
 
 model_params = {
     "num_agents": UserSettableParameter("slider", "Number of Robots", 1, 1, 10, 1), 
+    "boxes": UserSettableParameter("slider", "Number of Boxes", 1, 1, 100, 1), 
     "width": 15, 
     "height": 15, 
-    "boxes": 20
 }
+
+
 
 server = ModularServer(RandomModel, [grid], "Loader Robots", model_params)
                        
