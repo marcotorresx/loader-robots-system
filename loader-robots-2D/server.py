@@ -29,13 +29,13 @@ def agent_portrayal(agent):
 
     return portrayal
 
-grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)
+grid = CanvasGrid(agent_portrayal, 15, 15, 500, 500)
 
 model_params = {
-    "N": UserSettableParameter("slider", "Number of roombas", 1, 1, 10, 1), 
-    "width": 10, 
-    "height": 10, 
-    "timer": UserSettableParameter("slider", "Timer", 10, 10, 100, 5)
+    "num_agents": UserSettableParameter("slider", "Number of Robots", 1, 1, 10, 1), 
+    "width": 15, 
+    "height": 15, 
+    "boxes": 20
 }
 
 server = ModularServer(RandomModel, [grid], "Loader Robots", model_params)
