@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657838, g: 0.49641234, b: 0.57481676, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -330,16 +330,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 983bc179e80f15347a79dd7b044746e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  NAgents: 5
+  width: 15
+  height: 15
+  boxes: 56
+  timeToUpdate: 2
   agentPrefab: {fileID: 4140653412979413558, guid: c87c908fbf2764d51b2acbd07c3e3e59, type: 3}
   obstaclePrefab: {fileID: 961990229689801968, guid: 0870e23a47df89e468e8af19c065fce0, type: 3}
   destinyPrefab: {fileID: 5462204564809043760, guid: 662ddfcf665354f0187788faa9660bac, type: 3}
   boxPrefab: {fileID: 1355491802801089941, guid: b2767aa1024584da7966f4c37a124ece, type: 3}
   floor: {fileID: 1555382164}
-  NAgents: 5
-  width: 15
-  height: 15
-  boxes: 20
-  timeToUpdate: 2
 --- !u!4 &1518653506
 Transform:
   m_ObjectHideFlags: 0
@@ -408,7 +408,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c5b9cc5f4a7e78942834dfe4b4d19cae, type: 2}
+  - {fileID: 2100000, guid: 3f25516a26d6d4cf1916f4ce9c0791a9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

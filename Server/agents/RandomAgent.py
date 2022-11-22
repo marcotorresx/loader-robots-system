@@ -62,7 +62,7 @@ class RandomAgent(Agent):
         if is_box_in_my_cell:
             self.box = is_box_in_my_cell # Set new box
             self.box.is_taken = True
-            self.nearest_destiny = self.get_nearest_destiny() # Set new destiny
+            self.nearest_destiny = self.get_nearest_destiny(self.model.destinations) # Set new destiny
             return
          
         # Move to find a box
@@ -163,10 +163,9 @@ class RandomAgent(Agent):
         return dist
 
 
-    def get_nearest_destiny(self):
+    def get_nearest_destiny(self, destinations):
         """Function that obtains the nearest destiny point"""
 
-        destinations = self.model.destinations
         min_distance = 0
         nearest_destiny = None
         
@@ -259,15 +258,13 @@ class RandomAgent(Agent):
         new_destiny = self.nearest_destiny 
 
         # Get the different available destinations from current destiny
-        different_destinations = []
-        for destiny in self.model.destinations:
-            # If its not my current destiy
-            if destiny != self.nearest_destiny:
-                different_destinations.append(destiny)
+        different_destinations = [d for d in self.model.destinations if d != self.nearest_destiny]
+        # Get the nearest destiny of those different destinations
+        nearest_destiny = self.get_nearest_destiny(different_destinations)
 
-        # Prefer to change to a different destination
-        if len(different_destinations) > 0:
-            new_destiny = self.random.choice(different_destinations)
+        # Prefer to change to a nearest different destination
+        if nearest_destiny:
+            new_destiny = nearest_destiny
 
         self.nearest_destiny = new_destiny # Set new destiny
         self.steps_to_destiny = 0 # Reset steps to destiny
