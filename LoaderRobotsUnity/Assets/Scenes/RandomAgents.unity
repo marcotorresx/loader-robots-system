@@ -333,7 +333,7 @@ MonoBehaviour:
   NAgents: 5
   width: 15
   height: 15
-  boxes: 45
+  boxes: 25
   timeToUpdate: 2
   agentPrefab: {fileID: 4140653412979413558, guid: c87c908fbf2764d51b2acbd07c3e3e59, type: 3}
   obstaclePrefab: {fileID: 961990229689801968, guid: 0870e23a47df89e468e8af19c065fce0, type: 3}
